@@ -8,6 +8,7 @@ import MovieModal from '../MovieModal/MovieModal';
 import { fetchMovies } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 import styles from './App.module.css';
+import { AxiosError } from 'axios'; // Додайте імпорт для типу AxiosError
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -26,7 +27,12 @@ export default function App() {
         toast.error('No movies found for your request.');
       }
       setMovies(results);
-    } catch {
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast.error(`Failed to fetch movies: ${error.response?.data?.status_message || error.message}`);
+      } else {
+        toast.error('Failed to fetch movies');
+      }
       setError(true);
     } finally {
       setLoading(false);
