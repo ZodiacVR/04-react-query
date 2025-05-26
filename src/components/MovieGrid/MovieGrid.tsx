@@ -1,5 +1,5 @@
-import styles from './MovieGrid.module.css';
-import type { Movie } from '../../types/movie';
+import styles from "./MovieGrid.module.css";
+import type { Movie } from "../../types/movie";
 
 interface MovieGridProps {
   movies: Movie[];
@@ -17,7 +17,7 @@ export default function MovieGrid({ movies, onSelect }: MovieGridProps) {
               src={
                 movie.poster_path
                   ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : 'https://via.placeholder.com/500x750?text=No+Image'
+                  : "https://via.placeholder.com/500x750?text=No+Image"
               }
               alt={movie.title}
               loading="lazy"

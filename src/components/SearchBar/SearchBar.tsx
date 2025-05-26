@@ -1,27 +1,33 @@
-import React, { useState, useCallback } from 'react';
-import styles from './SearchBar.module.css';
-import toast from 'react-hot-toast';
+import React, { useState, useCallback } from "react";
+import styles from "./SearchBar.module.css";
+import toast from "react-hot-toast";
 
 interface SearchBarProps {
   onSubmit: (query: string) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSubmit }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
-  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-  }, []);
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(event.target.value);
+    },
+    [],
+  );
 
-  const handleSubmit = useCallback((event: React.FormEvent) => {
-    event.preventDefault();
-    if (query.trim() === '') {
-      toast.error('Please enter your search query.');
-      return;
-    }
-    onSubmit(query.trim());
-    setQuery('');
-  }, [onSubmit, query]);
+  const handleSubmit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+      if (query.trim() === "") {
+        toast.error("Please enter your search query.");
+        return;
+      }
+      onSubmit(query.trim());
+      setQuery("");
+    },
+    [onSubmit, query],
+  );
 
   return (
     <header className={styles.header}>

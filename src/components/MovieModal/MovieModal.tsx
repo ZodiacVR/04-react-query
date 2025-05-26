@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import styles from './MovieModal.module.css';
-import type { Movie } from '../../types/movie';
+import { useEffect } from "react";
+import styles from "./MovieModal.module.css";
+import type { Movie } from "../../types/movie";
 
 interface MovieModalProps {
   movie: Movie;
@@ -10,15 +10,15 @@ interface MovieModalProps {
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.body.style.overflow = 'auto';
-      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = "auto";
+      window.removeEventListener("keydown", handleEscape);
     };
   }, [onClose]);
 
@@ -41,7 +41,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
           src={
             movie.backdrop_path
               ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-              : 'https://via.placeholder.com/1280x720?text=No+Image'
+              : "https://via.placeholder.com/1280x720?text=No+Image"
           }
           alt={movie.title}
           className={styles.image}
