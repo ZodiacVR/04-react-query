@@ -1,7 +1,7 @@
 export interface Movie {
   id: number;
-  poster_path: string | null;
-  backdrop_path: string | null;
+  poster_path: string;
+  backdrop_path: string;
   title: string;
   overview: string;
   release_date: string;
@@ -11,4 +11,6 @@ export interface Movie {
 export interface MovieResponse {
   results: Movie[];
   total_pages: number;
+  total_results: number;
+  page: number; 
 }

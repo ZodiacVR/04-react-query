@@ -38,11 +38,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
           ×
         </button>
         <img
-          src={
-            movie.backdrop_path
-              ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-              : "https://via.placeholder.com/1280x720?text=No+Image"
-          }
+          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path || ''}`}
           alt={movie.title}
           className={styles.image}
         />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import toast, { Toaster } from "react-hot-toast";
 import ReactPaginate from "react-paginate";
@@ -8,24 +8,31 @@ import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import MovieModal from "../MovieModal/MovieModal";
 import { fetchMovies } from "../../services/movieService";
-import type { Movie } from "../../types/movie";
+import type { Movie, MovieResponse } from "../../types/movie";
 import styles from "./App.module.css";
 import { AxiosError } from "axios";
+import { keepPreviousData } from "@tanstack/react-query";
 
 export default function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery<MovieResponse>({
     queryKey: ["movies", query, page],
     queryFn: () => fetchMovies(query, page),
     enabled: !!query,
     retry: 1,
+    placeholderData: keepPreviousData, // Додаємо для безперервної пагінації
   });
 
-  const handleSearch = (newQuery: string) => {
-    setQuery(newQuery);
+  const handleSearch = (formData: FormData) => {
+    const newQuery = formData.get("query") as string;
+    if (newQuery.trim() === "") {
+      toast.error("Please enter your search query.");
+      return;
+    }
+    setQuery(newQuery.trim());
     setPage(1); // Скидаємо сторінку на першу при новому пошуку
   };
 
@@ -37,9 +44,15 @@ export default function App() {
     setSelectedMovie(null);
   };
 
+  useEffect(() => {
+    if (!isLoading && !isError && query && data?.results.length === 0) {
+      toast.error("No movies found for your request.");
+    }
+  }, [data, isLoading, isError, query]); // Викликаємо toast, коли змінюються дані або стан завантаження
+
   return (
     <div className={styles.container}>
-      <SearchBar onSubmit={handleSearch} />
+      <SearchBar action={handleSearch} />
       {isLoading && <Loader />}
       {isError && (
         <ErrorMessage
@@ -67,9 +80,7 @@ export default function App() {
             />
           )}
         </>
-      ) : (
-        query && !isLoading && toast.error("No movies found for your request.")
-      )}
+      ) : null}
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
