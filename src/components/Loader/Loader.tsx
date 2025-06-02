@@ -1,8 +1,5 @@
-import React from "react";
-import css from "./Loader.module.css";
+import css from './Loader.module.css';
 
-const Loader: React.FC = () => (
-  <p className={css.text}>Loading movies, please wait...</p>
-);
-
-export default Loader;
+export default function Loader() {
+    return <p className={css.text}>Loading movies, please wait...</p>
+}
