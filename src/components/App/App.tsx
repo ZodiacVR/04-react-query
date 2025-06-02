@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import toast, { Toaster } from "react-hot-toast";
 import ReactPaginate from "react-paginate";
 import SearchBar from "../SearchBar/SearchBar";
@@ -11,29 +11,29 @@ import { fetchMovies } from "../../services/movieService";
 import type { Movie, MovieResponse } from "../../types/movie";
 import styles from "./App.module.css";
 import { AxiosError } from "axios";
-import { keepPreviousData } from "@tanstack/react-query";
 
 export default function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError, error } = useQuery<MovieResponse>({
-    queryKey: ["movies", query, page],
-    queryFn: () => fetchMovies(query, page),
-    enabled: !!query,
+  const debouncedSearch = useDebounce(query, 500);
+
+  const { data, isLoading, isError, error } = useQuery<MovieResponse, Error>({
+    queryKey: ["movies", debouncedSearch, page],
+    queryFn: () => fetchMovies(debouncedSearch, page),
+    enabled: !!debouncedSearch,
     retry: 1,
-    placeholderData: keepPreviousData, // Додаємо для безперервної пагінації
+    placeholderData: keepPreviousData,
   });
 
-  const handleSearch = (formData: FormData) => {
-    const newQuery = formData.get("query") as string;
-    if (newQuery.trim() === "") {
+  const handleSearch = (query: string) => {
+    if (query.trim() === "") {
       toast.error("Please enter your search query.");
       return;
     }
-    setQuery(newQuery.trim());
-    setPage(1); // Скидаємо сторінку на першу при новому пошуку
+    setQuery(query.trim());
+    setPage(1);
   };
 
   const handleSelectMovie = (movie: Movie) => {
@@ -45,14 +45,17 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!isLoading && !isError && query && data?.results.length === 0) {
+    if (error) {
+      console.error("Error fetching movies:", error);
+    }
+    if (!isLoading && !isError && debouncedSearch && data?.results.length === 0) {
       toast.error("No movies found for your request.");
     }
-  }, [data, isLoading, isError, query]); // Викликаємо toast, коли змінюються дані або стан завантаження
+  }, [data, isLoading, isError, debouncedSearch, error]);
 
   return (
     <div className={styles.container}>
-      <SearchBar action={handleSearch} />
+      <SearchBar onSubmit={handleSearch} />
       {isLoading && <Loader />}
       {isError && (
         <ErrorMessage
@@ -63,7 +66,7 @@ export default function App() {
           }
         />
       )}
-      {data?.results.length ? (
+      {data && data.results && data.results.length > 0 && (
         <>
           <MovieGrid movies={data.results} onSelect={handleSelectMovie} />
           {data.total_pages > 1 && (
@@ -71,7 +74,7 @@ export default function App() {
               pageCount={data.total_pages}
               pageRangeDisplayed={5}
               marginPagesDisplayed={1}
-              onPageChange={({ selected }) => setPage(selected + 1)}
+              onPageChange={({ selected }: { selected: number }) => setPage(selected + 1)}
               forcePage={page - 1}
               containerClassName={styles.pagination}
               activeClassName={styles.active}
@@ -80,11 +83,18 @@ export default function App() {
             />
           )}
         </>
-      ) : null}
-      {selectedMovie && (
-        <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
+      {selectedMovie && <MovieModal movie={selectedMovie} onClose={handleCloseModal} />}
       <Toaster position="top-right" />
     </div>
   );
+}
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 }

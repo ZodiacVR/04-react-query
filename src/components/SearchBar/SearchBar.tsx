@@ -1,34 +1,37 @@
-import React from "react";
-import styles from "./SearchBar.module.css";
-import toast from "react-hot-toast";
+import React from 'react';
+import styles from './SearchBar.module.css';
+import toast from 'react-hot-toast';
 
 interface SearchBarProps {
-  action: (formData: FormData) => void;
+  onSubmit: (query: string) => void; // Змінено на onSubmit
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ action }) => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+// Form Action для обробки форми
+const searchAction = async (formData: FormData) => {
+  const query = formData.get('query') as string;
+
+  if (!query || query.trim() === '') {
+    toast.error('Please enter your search query.');
+    return;
+  }
+
+  return query.trim(); // Повертаємо рядок для подальшої обробки
+};
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSubmit }) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const query = formData.get("query") as string;
-
-    if (!query || query.trim() === "") {
-      toast.error("Please enter your search query.");
-      return;
+    const query = await searchAction(formData);
+    if (query) {
+      onSubmit(query); // Викликаємо onSubmit з рядком
     }
-
-    action(formData);
   };
 
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <a
-          className={styles.link}
-          href="https://www.themoviedb.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a className={styles.link} href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
           Powered by TMDB
         </a>
         <form className={styles.form} onSubmit={handleSubmit}>
